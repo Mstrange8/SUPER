@@ -39,6 +39,11 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
 
+// 404 handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
@@ -48,14 +53,11 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-// 404 handler
-app.use((req: Request, res: Response) => {
-  res.status(404).json({ error: 'Route not found' });
+// Start server for local development
+const PORT = config.port || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT} in ${config.nodeEnv} mode`);
 });
 
-// Start server
-app.listen(config.port, () => {
-  console.log(`🚀 Server running on port ${config.port} in ${config.nodeEnv} mode`);
-});
-
+// Export for Cloudflare Workers
 export default app;

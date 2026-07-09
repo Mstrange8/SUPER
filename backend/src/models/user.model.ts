@@ -1,6 +1,6 @@
 import { query } from '../database';
 import { User, UserRegistrationData } from '../types/auth.types';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const SALT_ROUNDS = 10;
 

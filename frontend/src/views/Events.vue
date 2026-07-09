@@ -54,7 +54,7 @@
 
           <div class="form-group">
             <label for="event_type">Event Type *</label>
-            <select id="event_type" v-model="formData.event_type" required>
+            <select id="event_type" v-model="formData.event_type" @change="onEventTypeChange" required>
               <option value="">Select type...</option>
               <option value="tournament">Tournament</option>
               <option value="league">League</option>
@@ -103,11 +103,6 @@
               type="url"
               placeholder="https://example.com/event"
             />
-          </div>
-
-          <div class="form-group">
-            <label for="color">Custom Color</label>
-            <input id="color" v-model="formData.color" type="color" />
           </div>
 
           <div v-if="error" class="error-message">{{ error }}</div>
@@ -211,6 +206,12 @@ const formData = ref({
   color: '',
 });
 
+const onEventTypeChange = () => {
+  if (formData.value.event_type && eventTypeColors[formData.value.event_type]) {
+    formData.value.color = eventTypeColors[formData.value.event_type];
+  }
+};
+
 const filteredEvents = computed(() => {
   if (selectedTypes.value.length === 0) {
     return eventStore.events;
@@ -281,12 +282,24 @@ const resetForm = () => {
 
 const editEvent = (event: Event) => {
   selectedEvent.value = event;
+  
+  // Convert UTC dates to local datetime-local format
+  const formatLocalDateTime = (utcDate: string) => {
+    const date = new Date(utcDate);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+  
   formData.value = {
     title: event.title,
     description: event.description || '',
     event_type: event.event_type,
-    start_date: event.start_date.slice(0, 16),
-    end_date: event.end_date ? event.end_date.slice(0, 16) : '',
+    start_date: formatLocalDateTime(event.start_date),
+    end_date: event.end_date ? formatLocalDateTime(event.end_date) : '',
     external_link: event.external_link || '',
     color: event.color,
   };
@@ -298,11 +311,19 @@ const handleSubmit = async () => {
   loading.value = true;
   error.value = '';
 
+  // Convert datetime-local to ISO string (keeps local timezone, browser will send as UTC)
+  const submitData = {
+    ...formData.value,
+    start_date: formData.value.start_date ? new Date(formData.value.start_date).toISOString() : '',
+    end_date: formData.value.end_date ? new Date(formData.value.end_date).toISOString() : undefined,
+    color: eventTypeColors[formData.value.event_type] || '#607D8B'
+  };
+
   try {
     if (showEditModal.value && selectedEvent.value) {
-      await eventStore.updateEvent(selectedEvent.value.id, formData.value as any);
+      await eventStore.updateEvent(selectedEvent.value.id, submitData as any);
     } else {
-      await eventStore.createEvent(formData.value as any);
+      await eventStore.createEvent(submitData as any);
     }
     closeModals();
   } catch (err: any) {

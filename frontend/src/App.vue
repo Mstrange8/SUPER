@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from './stores/auth.store';
 import Footer from './components/Footer.vue';
@@ -82,6 +82,13 @@ import Footer from './components/Footer.vue';
 const router = useRouter();
 const authStore = useAuthStore();
 const mobileMenuOpen = ref(false);
+
+// Refresh user profile on app load to get updated role
+onMounted(async () => {
+  if (authStore.isAuthenticated) {
+    await authStore.fetchProfile();
+  }
+});
 
 const handleLogout = () => {
   authStore.logout();

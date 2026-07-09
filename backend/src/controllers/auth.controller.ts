@@ -50,7 +50,7 @@ export class AuthController {
       const user = await UserModel.create({ email, username, password });
 
       // Generate JWT token
-      const token = generateToken({id: user.id, 
+      const token = await generateToken({id: user.id, 
         userId: user.id,
         email: user.email,
         username: user.username,
@@ -99,7 +99,7 @@ export class AuthController {
       }
 
       // Generate JWT token
-      const token = generateToken({id: user.id, 
+      const token = await generateToken({id: user.id, 
         userId: user.id,
         email: user.email,
         username: user.username,

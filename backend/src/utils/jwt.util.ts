@@ -1,16 +1,28 @@
-import jwt from 'jsonwebtoken';
+import { SignJWT, jwtVerify } from 'jose';
 import { config } from '../config';
 import { JWTPayload } from '../types/auth.types';
 
-export const generateToken = (payload: JWTPayload): string => {
-  return jwt.sign(payload, config.jwt.secret, {
-    expiresIn: config.jwt.expiresIn,
-  } as any);
+const getSecretKey = () => new TextEncoder().encode(config.jwt.secret);
+
+export const generateToken = async (payload: JWTPayload): Promise<string> => {
+  const expiresIn = config.jwt.expiresIn || '7d';
+  // Parse expiration time
+  let expirationTime = '7d';
+  if (typeof expiresIn === 'string') {
+    expirationTime = expiresIn;
+  }
+  
+  return await new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime(expirationTime)
+    .sign(getSecretKey());
 };
 
-export const verifyToken = (token: string): JWTPayload | null => {
+export const verifyToken = async (token: string): Promise<JWTPayload | null> => {
   try {
-    const decoded = jwt.verify(token, config.jwt.secret) as any;
+    const { payload } = await jwtVerify(token, getSecretKey());
+    const decoded = payload as any;
     // Ensure both userId and id are present for compatibility
     return {
       ...decoded,
