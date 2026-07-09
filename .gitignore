@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .env
+.prod.env
+.local.env
 *.log
 .DS_Store
 coverage/

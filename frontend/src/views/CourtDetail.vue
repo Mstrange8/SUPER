@@ -42,7 +42,7 @@
 
             <div class="info-card">
               <div class="info-label">HOURS</div>
-              <div class="info-value">24/7</div>
+              <div class="info-value">24</div>
             </div>
           </div>
         </div>
