@@ -42,7 +42,7 @@
 
             <div class="info-card">
               <div class="info-label">HOURS</div>
-              <div class="info-value">24</div>
+              <div class="info-value">24/7</div>
             </div>
           </div>
         </div>
@@ -81,7 +81,7 @@
               loading="lazy"
               allowfullscreen
               referrerpolicy="no-referrer-when-downgrade"
-              :src="`https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=${courtStore.selectedCourt.latitude},${courtStore.selectedCourt.longitude}`">
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d24617.270376545133!2d-111.49391412734985!3d39.533471580399315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x874c1582eff17683%3A0x4ddddecf27d250dd!2sMt%20Pleasant%20City%20Park!5e0!3m2!1sen!2sus!4v1783633970639!5m2!1sen!2sus">
             </iframe>
           </div>
           <div v-else class="no-map">
