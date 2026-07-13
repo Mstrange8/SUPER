@@ -187,6 +187,7 @@ const editForm = ref({
   number_of_courts: 1,
   has_lights: false,
   surface_type: '',
+  map_embedding: '',
 });
 
 onMounted(async () => {
