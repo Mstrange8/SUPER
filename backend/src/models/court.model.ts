@@ -32,7 +32,7 @@ export class CourtModel {
     const result = await query(
       `INSERT INTO courts (name, address, city, zip, map_embedding, description, 
                           surface_type, num_courts, has_lighting, amenities, image_url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
       [
         courtData.name,
