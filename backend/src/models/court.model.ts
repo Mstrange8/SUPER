@@ -29,6 +29,7 @@ export class CourtModel {
   }
 
   static async create(courtData: CreateCourtData): Promise<Court> {
+    console.log(courtData);
     const result = await query(
       `INSERT INTO courts (name, address, city, zip, map_embedding, description, 
                           surface_type, num_courts, has_lighting, amenities, image_url)
@@ -48,6 +49,7 @@ export class CourtModel {
         courtData.image_url,
       ]
     );
+    console.log(result);
     return result.rows[0];
   }
 
