@@ -9,9 +9,9 @@ const getSql = () => neon(config.databaseUrl);
 
 export const query = async (text: string, params?: any[]): Promise<{ rows: any[]; rowCount: number }> => {
   const sql = getSql();
-  
+
   // Neon's sql function supports parameterized queries with array
-  const result = await sql(text, params || []) as any[];
+  const result = await sql.query(text, params || []) as any[];
   return { rows: result || [], rowCount: result?.length || 0 };
 };
 

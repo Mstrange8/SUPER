@@ -1,0 +1,6 @@
+ALTER TABLE courts
+DROP COLUMN IF EXISTS latitude,
+DROP COLUMN IF EXISTS longitude;
+
+ALTER TABLE courts
+ADD COLUMN IF NOT EXISTS map_embedding TEXT;
