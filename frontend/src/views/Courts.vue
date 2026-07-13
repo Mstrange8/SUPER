@@ -14,13 +14,6 @@
       
       <div v-else-if="courtStore.courts.length === 0" class="no-courts">
         <p>No courts found.</p>
-        <button
-          v-if="authStore.isAdmin"
-          @click="showCreateModal = true"
-          class="btn-primary"
-        >
-          + ADD COURT
-        </button>
       </div>
 
       <div v-else class="courts-grid">
@@ -42,8 +35,17 @@
           <button @click="goToCourtDetail(court.id)" class="btn-primary">
             MORE DETAILS
           </button>
-        </div>
+        </div>    
       </div>
+      <div style="margin-top: 2rem; text-align: center; width: fit-content; align-items: center; margin-left: auto; margin-right: auto;">
+        <button
+          v-if="authStore.isAdmin"
+          @click="showCreateModal = true"
+          class="btn-primary">
+          + ADD COURT
+        </button>
+      </div>
+      
     </section>
 
     <!-- Create Court Modal -->
