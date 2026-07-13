@@ -75,11 +75,11 @@ app.get('/api/health', (c) => c.json({ status: 'ok' }));
 app.post('/api/auth/register', async (c) => {
   const { email, username, password } = await c.req.json();
   if (!email || !username || !password) return c.json({ error: 'Missing fields' }, 400);
-  
+
   const db = c.get('db');
   const existing = await db`SELECT id FROM users WHERE email = ${email} OR username = ${username}`;
   if (existing.length > 0) return c.json({ error: 'User exists' }, 409);
-  
+
   const hash = await bcrypt.hash(password, 10);
   const [user] = await db`INSERT INTO users (email, username, password_hash, role) VALUES (${email}, ${username}, ${hash}, 'user') RETURNING id, email, username, role`;
   const token = await generateToken({ userId: user.id, email: user.email, username: user.username, role: user.role }, c.env.JWT_SECRET);
@@ -89,11 +89,11 @@ app.post('/api/auth/register', async (c) => {
 app.post('/api/auth/login', async (c) => {
   const { email, password } = await c.req.json();
   if (!email || !password) return c.json({ error: 'Missing fields' }, 400);
-  
+
   const db = c.get('db');
   const [user] = await db`SELECT * FROM users WHERE email = ${email}`;
   if (!user || !(await bcrypt.compare(password, user.password_hash))) return c.json({ error: 'Invalid credentials' }, 401);
-  
+
   const token = await generateToken({ userId: user.id, email: user.email, username: user.username, role: user.role }, c.env.JWT_SECRET);
   return c.json({ user: { id: user.id, email: user.email, username: user.username, role: user.role }, token });
 });
@@ -195,17 +195,17 @@ app.get('/api/courts/:id', async (c) => {
 });
 
 app.post('/api/courts', authenticate, requireAdmin, async (c) => {
-  const { name, address, city, zip, latitude, longitude, description, surface_type, num_courts, has_lighting, amenities, image_url } = await c.req.json();
+  const { name, address, city, zip, map_embedding, description, surface_type, num_courts, has_lighting, amenities, image_url } = await c.req.json();
   if (!name || !address || !city) return c.json({ error: 'Missing fields' }, 400);
   const db = c.get('db');
-  const [court] = await db`INSERT INTO courts (name, address, city, zip, latitude, longitude, description, surface_type, num_courts, has_lighting, amenities, image_url) VALUES (${name}, ${address}, ${city}, ${zip || null}, ${latitude || null}, ${longitude || null}, ${description || null}, ${surface_type || null}, ${num_courts || 0}, ${has_lighting || false}, ${amenities || null}, ${image_url || null}) RETURNING *`;
+  const [court] = await db`INSERT INTO courts (name, address, city, zip, map_embedding, description, surface_type, num_courts, has_lighting, amenities, image_url) VALUES (${name}, ${address}, ${city}, ${zip || null}, ${map_embedding || null}, ${description || null}, ${surface_type || null}, ${num_courts || 0}, ${has_lighting || false}, ${amenities || null}, ${image_url || null}) RETURNING *`;
   return c.json(court, 201);
 });
 
 app.patch('/api/courts/:id', authenticate, requireAdmin, async (c) => {
   const body = await c.req.json();
   const db = c.get('db');
-  const [court] = await db`UPDATE courts SET name = COALESCE(${body.name}, name), address = COALESCE(${body.address}, address), city = COALESCE(${body.city}, city), zip = COALESCE(${body.zip}, zip), latitude = COALESCE(${body.latitude}, latitude), longitude = COALESCE(${body.longitude}, longitude), description = COALESCE(${body.description}, description), surface_type = COALESCE(${body.surface_type}, surface_type), num_courts = COALESCE(${body.num_courts}, num_courts), has_lighting = COALESCE(${body.has_lighting}, has_lighting), amenities = COALESCE(${body.amenities}, amenities), image_url = COALESCE(${body.image_url}, image_url), updated_at = CURRENT_TIMESTAMP WHERE id = ${c.req.param('id')} RETURNING *`;
+  const [court] = await db`UPDATE courts SET name = COALESCE(${body.name}, name), address = COALESCE(${body.address}, address), city = COALESCE(${body.city}, city), zip = COALESCE(${body.zip}, zip), map_embedding = COALESCE(${body.map_embedding}, map_embedding), description = COALESCE(${body.description}, description), surface_type = COALESCE(${body.surface_type}, surface_type), num_courts = COALESCE(${body.num_courts}, num_courts), has_lighting = COALESCE(${body.has_lighting}, has_lighting), amenities = COALESCE(${body.amenities}, amenities), image_url = COALESCE(${body.image_url}, image_url), updated_at = CURRENT_TIMESTAMP WHERE id = ${c.req.param('id')} RETURNING *`;
   return court ? c.json(court) : c.json({ error: 'Not found' }, 404);
 });
 
@@ -219,7 +219,7 @@ app.delete('/api/courts/:id', authenticate, requireAdmin, async (c) => {
 app.get('/api/resources', async (c) => {
   const db = c.get('db');
   const type = c.req.query('type');
-  const resources = type 
+  const resources = type
     ? await db`SELECT * FROM resources WHERE resource_type = ${type} ORDER BY created_at DESC`
     : await db`SELECT * FROM resources ORDER BY created_at DESC`;
   return c.json({ resources });

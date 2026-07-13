@@ -4,8 +4,7 @@ export interface Court {
   address: string;
   city: string;
   zip?: string;
-  latitude?: number;
-  longitude?: number;
+  map_embedding?: string;
   description?: string;
   surface_type?: string;
   num_courts: number;
@@ -21,8 +20,7 @@ export interface CreateCourtData {
   address: string;
   city: string;
   zip?: string;
-  latitude?: number;
-  longitude?: number;
+  map_embedding?: string;
   description?: string;
   surface_type?: string;
   num_courts?: number;
@@ -36,8 +34,7 @@ export interface UpdateCourtData {
   address?: string;
   city?: string;
   zip?: string;
-  latitude?: number;
-  longitude?: number;
+  map_embedding?: string;
   description?: string;
   surface_type?: string;
   num_courts?: number;

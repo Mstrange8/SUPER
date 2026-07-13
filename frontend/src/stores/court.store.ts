@@ -18,7 +18,7 @@ export const useCourtStore = defineStore('courts', {
 
   getters: {
     courtsByCity: (state) => (city: string) => {
-      return state.courts.filter(court => 
+      return state.courts.filter(court =>
         court.city.toLowerCase().includes(city.toLowerCase())
       );
     },
@@ -51,36 +51,6 @@ export const useCourtStore = defineStore('courts', {
         return court;
       } catch (error: any) {
         this.error = error.response?.data?.error || 'Failed to fetch court';
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async fetchCourtsByCity(city: string) {
-      this.loading = true;
-      this.error = null;
-      try {
-        const response = await courtService.getByCity(city);
-        this.courts = response.courts;
-        return response.courts;
-      } catch (error: any) {
-        this.error = error.response?.data?.error || 'Failed to fetch courts';
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async fetchNearbyCourts(lat: number, lng: number, radius = 25) {
-      this.loading = true;
-      this.error = null;
-      try {
-        const response = await courtService.getNearby(lat, lng, radius);
-        this.courts = response.courts;
-        return response.courts;
-      } catch (error: any) {
-        this.error = error.response?.data?.error || 'Failed to fetch nearby courts';
         throw error;
       } finally {
         this.loading = false;

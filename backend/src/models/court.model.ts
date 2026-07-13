@@ -30,7 +30,7 @@ export class CourtModel {
 
   static async create(courtData: CreateCourtData): Promise<Court> {
     const result = await query(
-      `INSERT INTO courts (name, address, city, zip, latitude, longitude, description, 
+      `INSERT INTO courts (name, address, city, zip, map_embedding, description, 
                           surface_type, num_courts, has_lighting, amenities, image_url)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING *`,
@@ -39,8 +39,7 @@ export class CourtModel {
         courtData.address,
         courtData.city,
         courtData.zip,
-        courtData.latitude,
-        courtData.longitude,
+        courtData.map_embedding,
         courtData.description,
         courtData.surface_type,
         courtData.num_courts || 1,
@@ -77,14 +76,9 @@ export class CourtModel {
       values.push(courtData.zip);
       paramCount++;
     }
-    if (courtData.latitude !== undefined) {
-      fields.push(`latitude = $${paramCount}`);
-      values.push(courtData.latitude);
-      paramCount++;
-    }
-    if (courtData.longitude !== undefined) {
-      fields.push(`longitude = $${paramCount}`);
-      values.push(courtData.longitude);
+    if (courtData.map_embedding !== undefined) {
+      fields.push(`map_embedding = $${paramCount}`);
+      values.push(courtData.map_embedding);
       paramCount++;
     }
     if (courtData.description !== undefined) {
@@ -133,7 +127,7 @@ export class CourtModel {
   }
 
   static async delete(id: number): Promise<boolean> {
-    const result = await query('DELETE FROM courts WHERE id = $1', [id]);
+    const result = await query('DELETE FROM courts WHERE id = $1 RETURNING *', [id]);
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -144,26 +138,6 @@ export class CourtModel {
        ORDER BY name ASC 
        LIMIT $2`,
       [`%${searchTerm}%`, limit]
-    );
-    return result.rows;
-  }
-
-  static async findNearby(latitude: number, longitude: number, radiusMiles: number = 25, limit: number = 50): Promise<Court[]> {
-    // Using the Haversine formula to calculate distance
-    // 3959 is the approximate radius of the earth in miles
-    const result = await query(
-      `SELECT *, 
-        (3959 * acos(
-          cos(radians($1)) * cos(radians(latitude)) * 
-          cos(radians(longitude) - radians($2)) + 
-          sin(radians($1)) * sin(radians(latitude))
-        )) AS distance
-       FROM courts
-       WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-       HAVING distance < $3
-       ORDER BY distance ASC
-       LIMIT $4`,
-      [latitude, longitude, radiusMiles, limit]
     );
     return result.rows;
   }

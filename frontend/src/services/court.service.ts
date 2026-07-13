@@ -6,8 +6,7 @@ export interface Court {
   address: string;
   city: string;
   zip?: string;
-  latitude?: number;
-  longitude?: number;
+  map_embedding?: string;
   description?: string;
   surface_type?: string;
   num_courts: number;
@@ -24,8 +23,7 @@ export interface CreateCourtData {
   address: string;
   city: string;
   zip?: string;
-  latitude?: number;
-  longitude?: number;
+  map_embedding?: string;
   description?: string;
   surface_type?: string;
   num_courts?: number;
@@ -39,8 +37,7 @@ export interface UpdateCourtData {
   address?: string;
   city?: string;
   zip?: string;
-  latitude?: number;
-  longitude?: number;
+  map_embedding?: string;
   description?: string;
   surface_type?: string;
   num_courts?: number;
@@ -59,25 +56,6 @@ export const courtService = {
 
   async getById(id: number): Promise<Court> {
     const response = await api.get<Court>(`/courts/${id}`);
-    return response.data;
-  },
-
-  async getByCity(city: string, limit = 50): Promise<{ courts: Court[] }> {
-    const response = await api.get(`/courts/city/${city}`, {
-      params: { limit },
-    });
-    return response.data;
-  },
-
-  async getNearby(
-    lat: number,
-    lng: number,
-    radius = 25,
-    limit = 50
-  ): Promise<{ courts: Court[] }> {
-    const response = await api.get('/courts/nearby', {
-      params: { lat, lng, radius, limit },
-    });
     return response.data;
   },
 

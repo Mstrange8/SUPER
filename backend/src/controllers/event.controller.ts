@@ -7,7 +7,7 @@ export class EventController {
     try {
       const limitParam = req.query.limit as string | undefined;
       const offsetParam = req.query.offset as string | undefined;
-      
+
       const limit = limitParam ? parseInt(limitParam, 10) : 100;
       const offset = offsetParam ? parseInt(offsetParam, 10) : 0;
 
@@ -22,7 +22,7 @@ export class EventController {
   static async getEventById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const eventId = req.params.id;
-      
+
       if (!eventId) {
         res.status(400).json({ error: 'Event ID is required' });
         return;
@@ -140,7 +140,7 @@ export class EventController {
   static async updateEvent(req: AuthRequest, res: Response): Promise<void> {
     try {
       const eventId = req.params.id;
-      
+
       if (!eventId) {
         res.status(400).json({ error: 'Event ID is required' });
         return;
@@ -184,7 +184,7 @@ export class EventController {
   static async deleteEvent(req: AuthRequest, res: Response): Promise<void> {
     try {
       const eventId = req.params.id;
-      
+
       if (!eventId) {
         res.status(400).json({ error: 'Event ID is required' });
         return;
@@ -197,7 +197,7 @@ export class EventController {
       }
 
       const deleted = await EventModel.delete(parseInt(eventIdStr, 10));
-      
+
       if (!deleted) {
         res.status(404).json({ error: 'Event not found' });
         return;
@@ -213,7 +213,7 @@ export class EventController {
   static async searchEvents(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { q } = req.query;
-      
+
       if (!q) {
         res.status(400).json({ error: 'Search query is required' });
         return;

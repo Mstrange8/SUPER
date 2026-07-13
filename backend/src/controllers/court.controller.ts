@@ -7,7 +7,7 @@ export class CourtController {
     try {
       const limitParam = req.query.limit as string | undefined;
       const offsetParam = req.query.offset as string | undefined;
-      
+
       const limit = limitParam ? parseInt(limitParam, 10) : 50;
       const offset = offsetParam ? parseInt(offsetParam, 10) : 0;
 
@@ -22,7 +22,7 @@ export class CourtController {
   static async getCourtById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const courtId = req.params.id;
-      
+
       if (!courtId) {
         res.status(400).json({ error: 'Court ID is required' });
         return;
@@ -47,60 +47,6 @@ export class CourtController {
     }
   }
 
-  static async getCourtsByCity(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const city = req.params.city;
-      const limitParam = req.query.limit as string | undefined;
-      const limit = limitParam ? parseInt(limitParam, 10) : 50;
-
-      if (!city) {
-        res.status(400).json({ error: 'City is required' });
-        return;
-      }
-
-      const cityStr = Array.isArray(city) ? city[0] : city;
-      if (!cityStr) {
-        res.status(400).json({ error: 'Invalid city' });
-        return;
-      }
-
-      const courts = await CourtModel.findByCity(cityStr, limit);
-      res.status(200).json({ courts });
-    } catch (error) {
-      console.error('Get courts by city error:', error);
-      res.status(500).json({ error: 'Failed to fetch courts' });
-    }
-  }
-
-  static async getNearby(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const { lat, lng, radius } = req.query;
-
-      if (!lat || !lng) {
-        res.status(400).json({ error: 'Latitude and longitude are required' });
-        return;
-      }
-
-      const latitude = parseFloat(lat as string);
-      const longitude = parseFloat(lng as string);
-      const radiusMiles = radius ? parseFloat(radius as string) : 25;
-
-      if (isNaN(latitude) || isNaN(longitude)) {
-        res.status(400).json({ error: 'Invalid latitude or longitude' });
-        return;
-      }
-
-      const limitParam = req.query.limit as string | undefined;
-      const limit = limitParam ? parseInt(limitParam, 10) : 50;
-
-      const courts = await CourtModel.findNearby(latitude, longitude, radiusMiles, limit);
-      res.status(200).json({ courts });
-    } catch (error) {
-      console.error('Get nearby courts error:', error);
-      res.status(500).json({ error: 'Failed to fetch nearby courts' });
-    }
-  }
-
   static async createCourt(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
@@ -113,8 +59,7 @@ export class CourtController {
         address,
         city,
         zip,
-        latitude,
-        longitude,
+        map_embedding,
         description,
         surface_type,
         num_courts,
@@ -133,8 +78,7 @@ export class CourtController {
         address,
         city,
         zip,
-        latitude,
-        longitude,
+        map_embedding,
         description,
         surface_type,
         num_courts,
@@ -153,7 +97,7 @@ export class CourtController {
   static async updateCourt(req: AuthRequest, res: Response): Promise<void> {
     try {
       const courtId = req.params.id;
-      
+
       if (!courtId) {
         res.status(400).json({ error: 'Court ID is required' });
         return;
@@ -170,8 +114,7 @@ export class CourtController {
         address,
         city,
         zip,
-        latitude,
-        longitude,
+        map_embedding,
         description,
         surface_type,
         num_courts,
@@ -185,8 +128,7 @@ export class CourtController {
         address,
         city,
         zip,
-        latitude,
-        longitude,
+        map_embedding,
         description,
         surface_type,
         num_courts,
@@ -210,7 +152,7 @@ export class CourtController {
   static async deleteCourt(req: AuthRequest, res: Response): Promise<void> {
     try {
       const courtId = req.params.id;
-      
+
       if (!courtId) {
         res.status(400).json({ error: 'Court ID is required' });
         return;
@@ -223,7 +165,7 @@ export class CourtController {
       }
 
       const deleted = await CourtModel.delete(parseInt(courtIdStr, 10));
-      
+
       if (!deleted) {
         res.status(404).json({ error: 'Court not found' });
         return;
@@ -239,7 +181,7 @@ export class CourtController {
   static async searchCourts(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { q } = req.query;
-      
+
       if (!q) {
         res.status(400).json({ error: 'Search query is required' });
         return;

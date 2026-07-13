@@ -81,7 +81,7 @@
               loading="lazy"
               allowfullscreen
               referrerpolicy="no-referrer-when-downgrade"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d24617.270376545133!2d-111.49391412734985!3d39.533471580399315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x874c1582eff17683%3A0x4ddddecf27d250dd!2sMt%20Pleasant%20City%20Park!5e0!3m2!1sen!2sus!4v1783633970639!5m2!1sen!2sus">
+              :src="courtStore.selectedCourt.map_embedding">
             </iframe>
           </div>
           <!-- <div v-else class="no-map">
@@ -145,6 +145,11 @@
             <input v-model="editForm.surface_type" type="text" />
           </div>
 
+          <div class="form-group">
+            <label>Google Map Embedding</label>
+            <input v-model="editForm.map_embedding" type="text" />
+          </div>
+
           <div class="form-actions">
             <button type="submit" class="btn-primary" :disabled="submitting">
               {{ submitting ? 'Updating...' : 'Update Court' }}
@@ -197,6 +202,7 @@ onMounted(async () => {
         number_of_courts: courtStore.selectedCourt.num_courts || 1,
         has_lights: courtStore.selectedCourt.has_lighting || false,
         surface_type: courtStore.selectedCourt.surface_type || '',
+        map_embedding: courtStore.selectedCourt.map_embedding || '',
       };
     }
   } catch (error) {
@@ -223,6 +229,7 @@ const handleUpdateCourt = async () => {
       num_courts: editForm.value.number_of_courts,
       has_lighting: editForm.value.has_lights,
       surface_type: editForm.value.surface_type,
+      map_embedding: editForm.value.map_embedding,
     });
     closeEditModal();
   } catch (error: any) {

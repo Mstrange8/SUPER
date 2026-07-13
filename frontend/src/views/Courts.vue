@@ -89,13 +89,8 @@
           </div>
 
           <div class="form-group">
-            <label>Latitude</label>
-            <input v-model.number="form.latitude" type="number" step="0.000001" />
-          </div>
-
-          <div class="form-group">
-            <label>Longitude</label>
-            <input v-model.number="form.longitude" type="number" step="0.000001" />
+            <label>Google Maps Embedding</label>
+            <input v-model="form.map_embedding" type="text"/>
           </div>
 
           <div class="form-actions">
@@ -134,8 +129,7 @@ const form = ref({
   number_of_courts: 1,
   has_lights: false,
   surface_type: '',
-  latitude: undefined as number | undefined,
-  longitude: undefined as number | undefined,
+  map_embedding: ''
 });
 
 onMounted(async () => {
@@ -166,8 +160,7 @@ const resetForm = () => {
     number_of_courts: 1,
     has_lights: false,
     surface_type: '',
-    latitude: undefined,
-    longitude: undefined,
+    map_embedding: ''
   };
 };
 
@@ -182,8 +175,7 @@ const handleCreateCourt = async () => {
       num_courts: form.value.number_of_courts,
       has_lighting: form.value.has_lights,
       surface_type: form.value.surface_type,
-      latitude: form.value.latitude,
-      longitude: form.value.longitude,
+      map_embedding: form.value.map_embedding
     });
     closeModal();
   } catch (error: any) {
