@@ -40,7 +40,7 @@ export class EventModel {
 
   static async create(eventData: CreateEventData, userId: number): Promise<Event> {
     const color = eventData.color || EVENT_TYPE_COLORS[eventData.event_type] || '#4CAF50';
-    
+
     const result = await query(
       `INSERT INTO events (title, description, event_type, start_date, end_date, external_link, color, created_by)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -115,7 +115,7 @@ export class EventModel {
   }
 
   static async delete(id: number): Promise<boolean> {
-    const result = await query('DELETE FROM events WHERE id = $1', [id]);
+    const result = await query('DELETE FROM events WHERE id = $1 RETURNING *', [id]);
     return (result.rowCount ?? 0) > 0;
   }
 

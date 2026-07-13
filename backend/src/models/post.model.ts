@@ -110,17 +110,17 @@ export class PostModel {
   }
 
   static async delete(id: number): Promise<boolean> {
-    const result = await query('DELETE FROM posts WHERE id = $1', [id]);
+    const result = await query('DELETE FROM posts WHERE id = $1 RETURNING *', [id]);
     return (result.rowCount || 0) > 0;
   }
 
   static async search(searchTerm: string, groupId?: number, limit = 50): Promise<Post[]> {
     const searchPattern = `%${searchTerm}%`;
-    const whereClause = groupId 
+    const whereClause = groupId
       ? 'WHERE (p.title ILIKE $1 OR p.content ILIKE $1) AND p.group_id = $3'
       : 'WHERE p.title ILIKE $1 OR p.content ILIKE $1';
-    
-    const params = groupId 
+
+    const params = groupId
       ? [searchPattern, limit, groupId]
       : [searchPattern, limit];
 

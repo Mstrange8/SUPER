@@ -61,7 +61,7 @@ export class CommentModel {
   }
 
   static async delete(id: number): Promise<boolean> {
-    const result = await query('DELETE FROM comments WHERE id = $1', [id]);
+    const result = await query('DELETE FROM comments WHERE id = $1 RETURNING *', [id]);
     return (result.rowCount || 0) > 0;
   }
 }

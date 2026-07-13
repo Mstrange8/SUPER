@@ -84,7 +84,7 @@ export class ResourceModel {
   }
 
   static async delete(id: number): Promise<boolean> {
-    const result = await query('DELETE FROM resources WHERE id = $1', [id]);
+    const result = await query('DELETE FROM resources WHERE id = $1 RETURNING *', [id]);
     return (result.rowCount ?? 0) > 0;
   }
 

@@ -85,7 +85,7 @@ export class GroupModel {
   }
 
   static async delete(id: number): Promise<boolean> {
-    const result = await query('DELETE FROM groups WHERE id = $1', [id]);
+    const result = await query('DELETE FROM groups WHERE id = $1 RETURNING *', [id]);
     return (result.rowCount || 0) > 0;
   }
 
@@ -119,7 +119,7 @@ export class GroupModel {
 
   static async leaveGroup(groupId: number, userId: number): Promise<boolean> {
     const result = await query(
-      'DELETE FROM group_members WHERE group_id = $1 AND user_id = $2',
+      'DELETE FROM group_members WHERE group_id = $1 AND user_id = $2 RETURNING *',
       [groupId, userId]
     );
     return (result.rowCount || 0) > 0;
