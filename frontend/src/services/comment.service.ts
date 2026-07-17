@@ -3,8 +3,8 @@ import type { Comment, CreateCommentRequest } from '../types/group.types';
 
 export const commentService = {
   async getCommentsByPost(postId: number, limit = 100, offset = 0): Promise<{ comments: Comment[]; total: number }> {
-    const response = await api.get(`/comments/post/${postId}`, {
-      params: { limit, offset },
+    const response = await api.get(`/comments`, {
+      params: { post_id: postId, limit, offset },
     });
     return response.data;
   },

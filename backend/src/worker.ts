@@ -364,13 +364,33 @@ app.post('/api/donations/create-payment-intent', async (c) => {
 // ============ GROUPS ROUTES ============
 app.get('/api/groups', async (c) => {
   const db = c.get('db');
-  const groups = await db`SELECT g.*, u.username as creator_name, (SELECT COUNT(*) FROM group_members gm WHERE gm.group_id = g.id) as member_count FROM groups g LEFT JOIN users u ON g.created_by = u.id ORDER BY g.created_at DESC`;
+  const groups = await db`SELECT g.*, u.username as creator_username, (SELECT COUNT(*) FROM group_members gm WHERE gm.group_id = g.id) as member_count FROM groups g LEFT JOIN users u ON g.created_by = u.id ORDER BY g.created_at DESC`;
   return c.json({ groups });
 });
 
-app.get('/api/groups/:id', async (c) => {
+app.get('/api/groups/:id', authenticate, async (c) => {
   const db = c.get('db');
-  const [group] = await db`SELECT g.*, u.username as creator_name FROM groups g LEFT JOIN users u ON g.created_by = u.id WHERE g.id = ${c.req.param('id')}`;
+  const user = c.get('user');
+  const [group] = await db`
+    SELECT
+      g.*,
+      u.username AS creator_username,
+      (
+        SELECT COUNT(*)
+        FROM group_members gm
+        WHERE gm.group_id = g.id
+      ) AS member_count,
+      EXISTS (
+        SELECT 1
+        FROM group_members gm
+        WHERE gm.group_id = g.id
+          AND gm.user_id = ${user?.id}
+      ) AS is_member
+    FROM groups g
+    LEFT JOIN users u
+      ON g.created_by = u.id
+    WHERE g.id = ${c.req.param('id')}
+  `;
   return group ? c.json(group) : c.json({ error: 'Not found' }, 404);
 });
 

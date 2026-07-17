@@ -148,6 +148,13 @@ cd backend && npm run build
 cd frontend && npm run build
 ```
 
+```bash
+# Backend
+cd backend && wrangler deploy
+
+# Frontend
+git push
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

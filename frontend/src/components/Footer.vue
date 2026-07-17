@@ -32,13 +32,12 @@
             <h4>CONTACT US</h4>
             <div class="contact-info">
               <p>SANPETE COUNTY, UTAH</p>
-              <p><a href="mailto:support@superpickleball.com">SUPPORT@SUPERPICKLEBALL.COM</a></p>
-              <p><a href="tel:+14355550198">+1 (435) 555-0198</a></p>
+              <p><a href="mailto:adminsuperpickleball@gmail.com">admin.superpickleball@gmail.com</a></p>
             </div>
           </div>
 
           <!-- Social Links -->
-          <div class="footer-section">
+          <!-- <div class="footer-section">
             <h4>FOLLOW THE GAME</h4>
             <div class="social-links">
               <a href="#" aria-label="Facebook" class="social-icon">
@@ -72,7 +71,7 @@
                 </svg>
               </a>
             </div>
-          </div>
+          </div> -->
         </div>
 
         <!-- Footer Bottom -->
