@@ -59,12 +59,12 @@ export const courtService = {
     return response.data;
   },
 
-  async create(data: CreateCourtData): Promise<Court> {
+  async create(data: FormData): Promise<Court> {
     const response = await api.post<Court>('/courts', data);
     return response.data;
   },
 
-  async update(id: number, data: UpdateCourtData): Promise<Court> {
+  async update(id: number, data: FormData): Promise<Court> {
     const response = await api.patch<Court>(`/courts/${id}`, data);
     return response.data;
   },

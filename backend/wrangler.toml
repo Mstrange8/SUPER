@@ -5,3 +5,7 @@ compatibility_flags = ["nodejs_compat_v2"]
 
 [observability]
 enabled = true
+
+[[r2_buckets]]
+binding = "COURT_IMAGES"
+bucket_name = "court-images"

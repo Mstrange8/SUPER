@@ -4,6 +4,7 @@ import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import Stripe from 'stripe';
 import { neon, neonConfig } from '@neondatabase/serverless';
+import { R2Bucket } from '@cloudflare/workers-types';
 
 // Configure Neon
 neonConfig.fetchConnectionCache = true;
@@ -14,6 +15,7 @@ type Bindings = {
   STRIPE_SECRET_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;
   FRONTEND_URL: string;
+  COURT_IMAGES: R2Bucket;
 };
 
 type Variables = {
@@ -195,18 +197,112 @@ app.get('/api/courts/:id', async (c) => {
 });
 
 app.post('/api/courts', authenticate, requireAdmin, async (c) => {
-  const { name, address, city, zip, map_embedding, description, surface_type, num_courts, has_lighting, amenities, image_url } = await c.req.json();
-  if (!name || !address || !city) return c.json({ error: 'Missing fields' }, 400);
+  const form = await c.req.formData();
+
+  const name = form.get('name') as string;
+  const address = form.get('address') as string;
+  const city = form.get('city') as string;
+  const zip = form.get('zip') as string | null;
+  const map_embedding = form.get('map_embedding') as string | null;
+  const description = form.get('description') as string | null;
+  const surface_type = form.get('surface_type') as string | null;
+  const amenities = form.get('amenities') as string | null;
+
+  const num_courts = Number(form.get('num_courts') ?? 0);
+  const has_lighting = form.get('has_lighting') === 'true';
+
+  const image = form.get('image_url') as File | null;
+
+  if (!name || !address || !city) {
+    return c.json({ error: 'Missing fields' }, 400);
+  }
+
+  let image_url: string | null = null;
+
+  if (image && image.size > 0) {
+    const extension = image.name.split('.').pop();
+    image_url = `courts/${crypto.randomUUID()}.${extension}`;
+
+    await c.env.COURT_IMAGES.put(
+      image_url,
+      await image.arrayBuffer(),
+      {
+        httpMetadata: {
+          contentType: image.type,
+        },
+      }
+    );
+  }
+
   const db = c.get('db');
   const [court] = await db`INSERT INTO courts (name, address, city, zip, map_embedding, description, surface_type, num_courts, has_lighting, amenities, image_url) VALUES (${name}, ${address}, ${city}, ${zip || null}, ${map_embedding || null}, ${description || null}, ${surface_type || null}, ${num_courts || 0}, ${has_lighting || false}, ${amenities || null}, ${image_url || null}) RETURNING *`;
   return c.json(court, 201);
 });
 
 app.patch('/api/courts/:id', authenticate, requireAdmin, async (c) => {
-  const body = await c.req.json();
+  const form = await c.req.formData();
+
+  const id = c.req.param('id');
   const db = c.get('db');
-  const [court] = await db`UPDATE courts SET name = COALESCE(${body.name}, name), address = COALESCE(${body.address}, address), city = COALESCE(${body.city}, city), zip = COALESCE(${body.zip}, zip), map_embedding = COALESCE(${body.map_embedding}, map_embedding), description = COALESCE(${body.description}, description), surface_type = COALESCE(${body.surface_type}, surface_type), num_courts = COALESCE(${body.num_courts}, num_courts), has_lighting = COALESCE(${body.has_lighting}, has_lighting), amenities = COALESCE(${body.amenities}, amenities), image_url = COALESCE(${body.image_url}, image_url), updated_at = CURRENT_TIMESTAMP WHERE id = ${c.req.param('id')} RETURNING *`;
-  return court ? c.json(court) : c.json({ error: 'Not found' }, 404);
+
+  const name = form.get('name') as string | null;
+  const address = form.get('address') as string | null;
+  const city = form.get('city') as string | null;
+  const zip = form.get('zip') as string | null;
+  const map_embedding = form.get('map_embedding') as string | null;
+  const description = form.get('description') as string | null;
+  const surface_type = form.get('surface_type') as string | null;
+  const amenities = form.get('amenities') as string | null;
+
+  const num_courts = form.get('num_courts')
+    ? Number(form.get('num_courts'))
+    : null;
+
+  const has_lighting = form.get('has_lighting') !== null
+    ? form.get('has_lighting') === 'true'
+    : null;
+
+  const image = form.get('image_url') as File | null;
+
+  let image_url: string | null = null;
+
+  if (image && image.size > 0) {
+    const extension = image.name.split('.').pop();
+    image_url = `courts/${crypto.randomUUID()}.${extension}`;
+
+    await c.env.COURT_IMAGES.put(
+      image_url,
+      await image.arrayBuffer(),
+      {
+        httpMetadata: {
+          contentType: image.type,
+        },
+      }
+    );
+  }
+
+  const [court] = await db`
+    UPDATE courts
+    SET
+      name = COALESCE(${name}, name),
+      address = COALESCE(${address}, address),
+      city = COALESCE(${city}, city),
+      zip = COALESCE(${zip}, zip),
+      map_embedding = COALESCE(${map_embedding}, map_embedding),
+      description = COALESCE(${description}, description),
+      surface_type = COALESCE(${surface_type}, surface_type),
+      num_courts = COALESCE(${num_courts}, num_courts),
+      has_lighting = COALESCE(${has_lighting}, has_lighting),
+      amenities = COALESCE(${amenities}, amenities),
+      image_url = COALESCE(${image_url}, image_url),
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ${id}
+    RETURNING *;
+  `;
+
+  return court
+    ? c.json(court)
+    : c.json({ error: 'Not found' }, 404);
 });
 
 app.delete('/api/courts/:id', authenticate, requireAdmin, async (c) => {
@@ -415,6 +511,23 @@ app.delete('/api/comments/:id', authenticate, async (c) => {
   if (comment.user_id !== user!.userId && !['admin', 'sub_admin'].includes(user!.role)) return c.json({ error: 'Forbidden' }, 403);
   await db`DELETE FROM comments WHERE id = ${c.req.param('id')}`;
   return c.json({ message: 'Deleted' });
+});
+
+app.get('/api/images/*', async (c) => {
+  const key = c.req.path.replace('/api/images/', '');
+
+  const object = await c.env.COURT_IMAGES.get(key);
+
+  if (!object) {
+    return c.notFound();
+  }
+
+  return new Response(object.body, {
+    headers: {
+      "Content-Type": object.httpMetadata?.contentType || "image/jpeg",
+      "Cache-Control": "public, max-age=31536000",
+    },
+  });
 });
 
 // 404

@@ -49,7 +49,7 @@
 
         <div class="hero-image">
           <div v-if="courtStore.selectedCourt.image_url" class="image-wrapper">
-            <img :src="courtStore.selectedCourt.image_url" :alt="courtStore.selectedCourt.name" />
+            <img :src="`${API_URL}/images/${courtStore.selectedCourt.image_url}`" :alt="courtStore.selectedCourt.name" />
           </div>
           <div v-else class="image-placeholder">
             <span>🏓</span>
@@ -150,6 +150,23 @@
             <input v-model="editForm.map_embedding" type="text" />
           </div>
 
+          <div class="form-group">
+            <label for="image">Court Image</label>
+            <input
+              id="image"
+              type="file"
+              accept="image/*"
+              @change="handleImageChange"
+            />
+
+            <img
+              v-if="imagePreview"
+              :src="imagePreview"
+              alt="Preview"
+              class="image-preview"
+            />
+          </div>
+
           <div class="form-actions">
             <button type="submit" class="btn-primary" :disabled="submitting">
               {{ submitting ? 'Updating...' : 'Update Court' }}
@@ -169,6 +186,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCourtStore } from '../stores/court.store';
 import { useAuthStore } from '../stores/auth.store';
+import { API_URL } from '../services/api';
 
 const route = useRoute();
 const router = useRouter();
@@ -179,6 +197,9 @@ const loading = ref(true);
 const showEditModal = ref(false);
 const submitting = ref(false);
 
+const selectedImage = ref<File | null>(null);
+const imagePreview = ref<string | null>(null);
+
 const editForm = ref({
   name: '',
   address: '',
@@ -188,6 +209,7 @@ const editForm = ref({
   has_lights: false,
   surface_type: '',
   map_embedding: '',
+  image_url: ''
 });
 
 onMounted(async () => {
@@ -204,6 +226,7 @@ onMounted(async () => {
         has_lights: courtStore.selectedCourt.has_lighting || false,
         surface_type: courtStore.selectedCourt.surface_type || '',
         map_embedding: courtStore.selectedCourt.map_embedding || '',
+        image_url: courtStore.selectedCourt.image_url || ''
       };
     }
   } catch (error) {
@@ -222,16 +245,25 @@ const handleUpdateCourt = async () => {
   
   submitting.value = true;
   try {
-    await courtStore.updateCourt(courtStore.selectedCourt.id, {
-      name: editForm.value.name,
-      address: editForm.value.address,
-      city: editForm.value.city,
-      description: editForm.value.description,
-      num_courts: editForm.value.number_of_courts,
-      has_lighting: editForm.value.has_lights,
-      surface_type: editForm.value.surface_type,
-      map_embedding: editForm.value.map_embedding,
-    });
+    const formData = new FormData();
+
+    formData.append("name", editForm.value.name);
+    formData.append("address", editForm.value.address);
+    formData.append("city", editForm.value.city);
+    formData.append("description", editForm.value.description);
+    formData.append("num_courts", editForm.value.number_of_courts.toString());
+    formData.append("has_lighting", editForm.value.has_lights.toString());
+    formData.append("surface_type", editForm.value.surface_type);
+    formData.append("map_embedding", editForm.value.map_embedding);
+
+    if (selectedImage.value) {
+      formData.append("image_url", selectedImage.value);
+    }
+
+    await courtStore.updateCourt(
+      courtStore.selectedCourt.id,
+      formData
+    );
     closeEditModal();
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to update court');
@@ -251,6 +283,19 @@ const handleDeleteCourt = async () => {
       alert(error.response?.data?.message || 'Failed to delete court');
     }
   }
+};
+
+const handleImageChange = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+
+  if (!input.files?.length) {
+    selectedImage.value = null;
+    imagePreview.value = null;
+    return;
+  }
+
+  selectedImage.value = input.files[0];
+  imagePreview.value = URL.createObjectURL(selectedImage.value);
 };
 </script>
 
@@ -324,12 +369,18 @@ const handleDeleteCourt = async () => {
 }
 
 .hero-image {
-  background: linear-gradient(135deg, #B8D4E8 0%, #A8C7DB 100%);
   min-height: 500px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.image-preview {
+  margin-top: 1rem;
+  max-width: 100%;
+  max-height: 300px;
+  object-fit: cover;
 }
 
 .image-wrapper img {

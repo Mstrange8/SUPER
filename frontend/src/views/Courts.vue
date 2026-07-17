@@ -95,6 +95,23 @@
             <input v-model="form.map_embedding" type="text"/>
           </div>
 
+          <div class="form-group">
+            <label for="image">Court Image</label>
+            <input
+              id="image"
+              type="file"
+              accept="image/*"
+              @change="handleImageChange"
+            />
+
+            <img
+              v-if="imagePreview"
+              :src="imagePreview"
+              alt="Preview"
+              class="image-preview"
+            />
+          </div>
+
           <div class="form-actions">
             <button type="submit" class="btn-primary" :disabled="submitting">
               {{ submitting ? 'Creating...' : 'Create Court' }}
@@ -114,6 +131,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCourtStore } from '../stores/court.store';
 import { useAuthStore } from '../stores/auth.store';
+import { API_URL } from '../services/api';
 
 const router = useRouter();
 const courtStore = useCourtStore();
@@ -123,6 +141,9 @@ const loading = ref(true);
 const showCreateModal = ref(false);
 const submitting = ref(false);
 
+const selectedImage = ref<File | null>(null);
+const imagePreview = ref<string | null>(null);
+
 const form = ref({
   name: '',
   address: '',
@@ -131,7 +152,8 @@ const form = ref({
   number_of_courts: 1,
   has_lights: false,
   surface_type: '',
-  map_embedding: ''
+  map_embedding: '',
+  image_url: ''
 });
 
 onMounted(async () => {
@@ -162,29 +184,51 @@ const resetForm = () => {
     number_of_courts: 1,
     has_lights: false,
     surface_type: '',
-    map_embedding: ''
+    map_embedding: '',
+    image_url: ''
   };
 };
 
 const handleCreateCourt = async () => {
   submitting.value = true;
   try {
-    await courtStore.createCourt({
-      name: form.value.name,
-      address: form.value.address,
-      city: form.value.city,
-      description: form.value.description,
-      num_courts: form.value.number_of_courts,
-      has_lighting: form.value.has_lights,
-      surface_type: form.value.surface_type,
-      map_embedding: form.value.map_embedding
-    });
+    const formData = new FormData();
+
+    formData.append("name", form.value.name);
+    formData.append("address", form.value.address);
+    formData.append("city", form.value.city);
+    formData.append("description", form.value.description);
+    formData.append("num_courts", form.value.number_of_courts.toString());
+    formData.append("has_lighting", form.value.has_lights.toString());
+    formData.append("surface_type", form.value.surface_type);
+    formData.append("map_embedding", form.value.map_embedding);
+
+    if (selectedImage.value) {
+      formData.append("image_url", selectedImage.value);
+    }
+
+    await courtStore.createCourt(
+      formData
+    );
     closeModal();
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to create court');
   } finally {
     submitting.value = false;
   }
+};
+
+const handleImageChange = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+
+  if (!input.files?.length) {
+    selectedImage.value = null;
+    imagePreview.value = null;
+    return;
+  }
+
+  selectedImage.value = input.files[0];
+  imagePreview.value = URL.createObjectURL(selectedImage.value);
 };
 </script>
 

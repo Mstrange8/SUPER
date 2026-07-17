@@ -57,10 +57,11 @@ export const useCourtStore = defineStore('courts', {
       }
     },
 
-    async createCourt(data: CreateCourtData) {
+    async createCourt(data: FormData) {
       this.loading = true;
       this.error = null;
       try {
+        console.log(data);
         const court = await courtService.create(data);
         this.courts.push(court);
         return court;
@@ -72,7 +73,7 @@ export const useCourtStore = defineStore('courts', {
       }
     },
 
-    async updateCourt(id: number, data: UpdateCourtData) {
+    async updateCourt(id: number, data: FormData) {
       this.loading = true;
       this.error = null;
       try {

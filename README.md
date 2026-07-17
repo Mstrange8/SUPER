@@ -65,7 +65,7 @@ A community website for pickleball players in Sanpete County, Utah. Connect with
 
 6. Start the development server:
    ```bash
-   npm run dev
+   wrangler dev --port 3000
    ```
 
    The backend will run on http://localhost:3000
