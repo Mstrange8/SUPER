@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { courtService, type Court, type CreateCourtData, type UpdateCourtData } from '../services/court.service';
+import { courtService, type Court } from '../services/court.service';
 
 interface CourtState {
   courts: Court[];

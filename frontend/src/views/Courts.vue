@@ -131,7 +131,6 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCourtStore } from '../stores/court.store';
 import { useAuthStore } from '../stores/auth.store';
-import { API_URL } from '../services/api';
 
 const router = useRouter();
 const courtStore = useCourtStore();
