@@ -13,7 +13,7 @@ A community website for pickleball players in Sanpete County, Utah. Connect with
 ## Tech Stack
 
 ### Backend
-- Node.js with Express
+- Hono
 - TypeScript
 - PostgreSQL database
 - JWT authentication
@@ -24,8 +24,17 @@ A community website for pickleball players in Sanpete County, Utah. Connect with
 - Vue Router for navigation
 - Pinia for state management
 - FullCalendar.js for event display
-- Google Maps integration
 - Axios for API calls
+
+### Hosting
+- Hosted on Cloudflare
+- Frontend configured through GitHub
+- Backend configured through Wrangler
+- Domain is configured through Cloudflare
+
+### Database
+- Managed by Neon
+- Separate local and production databases
 
 ## Getting Started
 
@@ -33,7 +42,6 @@ A community website for pickleball players in Sanpete County, Utah. Connect with
 - Node.js 18+ and npm
 - PostgreSQL 14+
 - Stripe account (for donations)
-- Google Maps API key (for court locations)
 
 ### Backend Setup
 
@@ -127,10 +135,11 @@ super/
 
 ## Deployment
 
-The application is designed to be deployed on Cloudflare:
-- Backend: Cloudflare Workers
-- Frontend: Cloudflare Pages
-- Database: PostgreSQL (external) or Cloudflare D1
+### Frontend Deployment
+- Push to Github
+
+### Backend Deployment
+- cd backend wrangler deploy
 
 ## Development
 
@@ -138,27 +147,3 @@ The application is designed to be deployed on Cloudflare:
 ```bash
 npm test
 ```
-
-### Building for Production
-```bash
-# Backend
-cd backend && npm run build
-
-# Frontend
-cd frontend && npm run build
-```
-
-```bash
-# Backend
-cd backend && wrangler deploy
-
-# Frontend
-git push
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-ISC
