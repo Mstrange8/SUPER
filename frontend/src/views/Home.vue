@@ -44,7 +44,7 @@
       <p class="support-text">
         Your donations help fund this site so players can stay connected to local pickleball events, leagues, and programs across Sanpete County.
       </p>
-      <router-link to="/donate" class="btn-primary">DONATE NOW</router-link>
+      <a class="btn-primary" target="_blank" href="https://donate.stripe.com/test_9B600j0v749R0BRaQw9AA00">DONATE NOW</a>
     </section>
   </div>
 </template>
