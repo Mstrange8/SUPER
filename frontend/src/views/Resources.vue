@@ -1,36 +1,5 @@
 <template>
   <div class="resources-page">
-    <!-- Rules Section -->
-    <section class="rules-section">
-      <div class="rules-container">
-        <h1 class="section-number">01 RULES</h1>
-        
-        <div class="rule-item">
-          <h2 class="rule-title">THE COURT</h2>
-          <p class="rule-text">
-            The court is 34 feet long and 17 feet wide. It is divided into two equal halves by a net. Players must stay on the court and cannot step over the baseline or net.
-          </p>
-          <div class="rule-divider"></div>
-        </div>
-
-        <div class="rule-item">
-          <h2 class="rule-title">THE BALL</h2>
-          <p class="rule-text">
-            The ball must be struck with a paddle. It is served diagonally from the baseline to the diagonally opposite service court. The ball must be in play until it hits the ground or a paddle.
-          </p>
-          <div class="rule-divider"></div>
-        </div>
-
-        <div class="rule-item">
-          <h2 class="rule-title">SCORING</h2>
-          <p class="rule-text">
-            Points are scored when the ball lands in the opponent's court. A rally ends when the ball hits the ground or a paddle. The game is played to 11 points, with a two-point margin to win.
-          </p>
-          <div class="rule-divider"></div>
-        </div>
-      </div>
-    </section>
-
     <!-- Helpful Links Section -->
     <section class="links-section">
       <div class="links-container">
@@ -70,6 +39,48 @@
           class="btn-primary">
           + ADD RESOURCE
         </button>
+      </div>
+    </section>
+
+    <!-- Rules Section -->
+    <section class="rules-section">
+      <div class="rules-container">
+        <h1 class="section-number">RULES</h1>
+
+        <div class="links-list">
+            <a
+              href="https://usapickleball.org/docs/rules/USAP-Official-Rulebook.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="link-url"
+            >
+              <p style="font-size: 1.5rem;">2026 USA Pickleball Official Rules</p>
+            </a>
+        </div>
+        
+        <div class="rule-item">
+          <h2 class="rule-title">SERVING</h2>
+          <p class="rule-text">
+            Play begins with an underhand serve hit diagonally into the opponent's service court. The serve must clear the kitchen and land within the correct service box. Only the serving team can score points.
+          </p>
+          <div class="rule-divider"></div>
+        </div>
+
+        <div class="rule-item">
+          <h2 class="rule-title">GAMEPLAY</h2>
+          <p class="rule-text">
+            After the serve, each team must let the ball bounce once before hitting it, known as the double-bounce rule. After those two bounces, players may volley or let the ball bounce. Players may not volley while standing in the kitchen or touching its line, but they may enter the kitchen after the ball has bounced.
+          </p>
+          <div class="rule-divider"></div>
+        </div>
+
+        <div class="rule-item">
+          <h2 class="rule-title">SCORING</h2>
+          <p class="rule-text">
+            A point is scored when the opposing team commits a fault, such as hitting the ball out of bounds, into the net, or breaking a rule. Games are typically played to 11 points, and a team must win by 2 points.
+          </p>
+          <div class="rule-divider"></div>
+        </div>
       </div>
     </section>
 
@@ -193,7 +204,7 @@ const handleCreateResource = async () => {
   font-size: clamp(3rem, 6vw, 5rem);
   font-weight: 700;
   color: white;
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem;
   letter-spacing: 2px;
 }
 
