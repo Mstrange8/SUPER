@@ -9,3 +9,4 @@ coverage/
 backend/dist/
 frontend/dist/
 backend/.wrangler/
+frontend/.env.production
