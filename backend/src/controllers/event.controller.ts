@@ -111,7 +111,7 @@ export class EventController {
         return;
       }
 
-      const validTypes = ['tournament', 'league', 'fundraiser', 'social', 'other'];
+      const validTypes = ['signups', 'tournament', 'league', 'roundRobin', 'kingsCourt', 'other'];
       if (!validTypes.includes(event_type)) {
         res.status(400).json({ error: 'Invalid event type' });
         return;
@@ -154,7 +154,7 @@ export class EventController {
 
       const { title, description, event_type, start_date, end_date, external_link, color } = req.body;
 
-      if (event_type && !['tournament', 'league', 'fundraiser', 'social', 'other'].includes(event_type)) {
+      if (event_type && !['signups', 'tournament', 'league', 'roundRobin', 'kingsCourt', 'other'].includes(event_type)) {
         res.status(400).json({ error: 'Invalid event type' });
         return;
       }

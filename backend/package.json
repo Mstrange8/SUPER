@@ -25,6 +25,7 @@
     "hono": "^4.12.28",
     "jose": "^6.2.3",
     "multer": "^2.2.0",
+    "rrule": "^2.8.1",
     "stripe": "^22.3.0"
   },
   "devDependencies": {

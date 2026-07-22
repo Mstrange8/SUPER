@@ -32,7 +32,6 @@ app.use('*', cors({ origin: (origin) => origin || '*', credentials: true }));
 // Initialize DB and Stripe
 app.use('*', async (c, next) => {
   c.set('db', neon(c.env.DATABASE_URL));
-  c.set('stripe', new Stripe(c.env.STRIPE_SECRET_KEY || '', { apiVersion: '2024-06-20' }));
   await next();
 });
 
@@ -129,7 +128,17 @@ app.get('/api/events', async (c) => {
   const limit = parseInt(c.req.query('limit') || '100');
   const offset = parseInt(c.req.query('offset') || '0');
   const events = await db`SELECT * FROM events ORDER BY start_date ASC LIMIT ${limit} OFFSET ${offset}`;
-  return c.json({ events, limit, offset });
+
+  const formattedEvents = events.map(event => ({
+    ...event,
+    start_date: event.start_date.toISOString().split('T')[0],
+    end_date: event.end_date
+      ? event.end_date.toISOString().split('T')[0]
+      : null,
+    recurrence_end: event.recurrence_end ? event.recurrence_end.toISOString().split('T')[0] : null
+  }));
+
+  return c.json({ events: formattedEvents, limit, offset });
 });
 
 app.get('/api/events/search', async (c) => {
@@ -137,7 +146,17 @@ app.get('/api/events/search', async (c) => {
   if (!q) return c.json({ error: 'Query required' }, 400);
   const db = c.get('db');
   const events = await db`SELECT * FROM events WHERE title ILIKE ${'%' + q + '%'} OR description ILIKE ${'%' + q + '%'} LIMIT 50`;
-  return c.json({ events });
+
+  const formattedEvents = events.map(event => ({
+    ...event,
+    start_date: event.start_date.toISOString().split('T')[0],
+    end_date: event.end_date
+      ? event.end_date.toISOString().split('T')[0]
+      : null,
+    recurrence_end: event.recurrence_end ? event.recurrence_end.toISOString().split('T')[0] : null
+  }));
+
+  return c.json({ events: formattedEvents });
 });
 
 app.get('/api/events/date-range', async (c) => {
@@ -146,35 +165,87 @@ app.get('/api/events/date-range', async (c) => {
   if (!start || !end) return c.json({ error: 'Start and end required' }, 400);
   const db = c.get('db');
   const events = await db`SELECT * FROM events WHERE start_date >= ${start} AND start_date <= ${end} ORDER BY start_date`;
-  return c.json({ events });
+
+  const formattedEvents = events.map(event => ({
+    ...event,
+    start_date: event.start_date.toISOString().split('T')[0],
+    end_date: event.end_date
+      ? event.end_date.toISOString().split('T')[0]
+      : null,
+    recurrence_end: event.recurrence_end ? event.recurrence_end.toISOString().split('T')[0] : null
+  }));
+
+  return c.json({ events: formattedEvents });
 });
 
 app.get('/api/events/type/:type', async (c) => {
   const db = c.get('db');
   const events = await db`SELECT * FROM events WHERE event_type = ${c.req.param('type')} ORDER BY start_date LIMIT 100`;
-  return c.json({ events });
+
+  const formattedEvents = events.map(event => ({
+    ...event,
+    start_date: event.start_date.toISOString().split('T')[0],
+    end_date: event.end_date
+      ? event.end_date.toISOString().split('T')[0]
+      : null,
+    recurrence_end: event.recurrence_end ? event.recurrence_end.toISOString().split('T')[0] : null
+  }));
+
+  return c.json({ events: formattedEvents });
 });
 
 app.get('/api/events/:id', async (c) => {
   const db = c.get('db');
   const [event] = await db`SELECT * FROM events WHERE id = ${c.req.param('id')}`;
-  return event ? c.json(event) : c.json({ error: 'Not found' }, 404);
+
+  const formattedEvent = {
+    ...event,
+    start_date: event.start_date.toISOString().split('T')[0],
+    end_date: event.end_date
+      ? event.end_date.toISOString().split('T')[0]
+      : null,
+    recurrence_end: event.recurrence_end ? event.recurrence_end.toISOString().split('T')[0] : null
+  };
+
+  return event ? c.json(formattedEvent) : c.json({ error: 'Not found' }, 404);
 });
 
 app.post('/api/events', authenticate, requireAdmin, async (c) => {
-  const { title, description, event_type, start_date, end_date, external_link, color } = await c.req.json();
+  const { title, description, event_type, start_date, end_date, recurrence_rule, recurrence_end, external_link, color } = await c.req.json();
   if (!title || !event_type || !start_date) return c.json({ error: 'Missing fields' }, 400);
   const db = c.get('db');
   const user = c.get('user');
-  const [event] = await db`INSERT INTO events (title, description, event_type, start_date, end_date, external_link, color, created_by) VALUES (${title}, ${description || null}, ${event_type}, ${start_date}, ${end_date || null}, ${external_link || null}, ${color || null}, ${user!.userId}) RETURNING *`;
-  return c.json(event, 201);
+  const [event] = await db`INSERT INTO events (title, description, event_type, start_date, end_date, recurrence_rule, recurrence_end, external_link, color, created_by) VALUES (${title}, ${description || null}, ${event_type}, ${start_date}, ${end_date || null}, ${recurrence_rule || null}, ${recurrence_end || null}, ${external_link || null}, ${color || null}, ${user!.userId}) RETURNING *`;
+
+  const formattedEvent = {
+    ...event,
+    start_date: event.start_date.toISOString().split('T')[0],
+    end_date: event.end_date
+      ? event.end_date.toISOString().split('T')[0]
+      : null,
+    recurrence_end: event.recurrence_end ? event.recurrence_end.toISOString().split('T')[0] : null
+  };
+
+  return c.json(formattedEvent, 201);
 });
 
 app.patch('/api/events/:id', authenticate, requireAdmin, async (c) => {
-  const { title, description, event_type, start_date, end_date, external_link, color } = await c.req.json();
+  const { title, description, event_type, start_date, end_date, recurrence_rule, recurrence_end, external_link, color } = await c.req.json();
+  console.log(recurrence_end);
   const db = c.get('db');
-  const [event] = await db`UPDATE events SET title = COALESCE(${title}, title), description = COALESCE(${description}, description), event_type = COALESCE(${event_type}, event_type), start_date = COALESCE(${start_date}, start_date), end_date = COALESCE(${end_date}, end_date), external_link = COALESCE(${external_link}, external_link), color = COALESCE(${color}, color), updated_at = CURRENT_TIMESTAMP WHERE id = ${c.req.param('id')} RETURNING *`;
-  return event ? c.json(event) : c.json({ error: 'Not found' }, 404);
+  const [event] = await db`UPDATE events SET title = COALESCE(${title}, title), description = COALESCE(${description}, description), event_type = COALESCE(${event_type}, event_type), start_date = COALESCE(${start_date}, start_date), end_date = COALESCE(${end_date}, end_date), recurrence_rule = COALESCE(${recurrence_rule}, recurrence_rule), recurrence_end = COALESCE(${recurrence_end}, recurrence_end), external_link = COALESCE(${external_link}, external_link), color = COALESCE(${color}, color), updated_at = CURRENT_TIMESTAMP WHERE id = ${c.req.param('id')} RETURNING *`;
+
+  console.log(event);
+  const formattedEvent = {
+    ...event,
+    start_date: event.start_date.toISOString().split('T')[0],
+    end_date: event.end_date
+      ? event.end_date.toISOString().split('T')[0]
+      : null,
+    recurrence_end: event.recurrence_end ? event.recurrence_end.toISOString().split('T')[0] : null
+  };
+
+  return event ? c.json(formattedEvent) : c.json({ error: 'Not found' }, 404);
 });
 
 app.delete('/api/events/:id', authenticate, requireAdmin, async (c) => {

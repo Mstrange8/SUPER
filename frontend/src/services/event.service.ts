@@ -4,9 +4,11 @@ export interface Event {
   id: number;
   title: string;
   description?: string;
-  event_type: 'tournament' | 'league' | 'fundraiser' | 'social' | 'other';
+  event_type: 'signups' | 'tournament' | 'league' | 'roundRobin' | 'kingsCourt' | 'other';
   start_date: string;
   end_date?: string;
+  recurrence_rule?: string[];
+  recurrence_end?: string;
   external_link?: string;
   color: string;
   created_by?: number;
@@ -17,7 +19,7 @@ export interface Event {
 export interface CreateEventData {
   title: string;
   description?: string;
-  event_type: 'tournament' | 'league' | 'fundraiser' | 'social' | 'other';
+  event_type: 'signups' | 'tournament' | 'league' | 'roundRobin' | 'kingsCourt' | 'other';
   start_date: string;
   end_date?: string;
   external_link?: string;
@@ -27,7 +29,7 @@ export interface CreateEventData {
 export interface UpdateEventData {
   title?: string;
   description?: string;
-  event_type?: 'tournament' | 'league' | 'fundraiser' | 'social' | 'other';
+  event_type?: 'signups' | 'tournament' | 'league' | 'roundRobin' | 'kingsCourt' | 'other';
   start_date?: string;
   end_date?: string;
   external_link?: string;
@@ -35,18 +37,20 @@ export interface UpdateEventData {
 }
 
 export const EVENT_TYPE_COLORS: Record<string, string> = {
-  tournament: '#FF5722',
+  signups: '#FF5722',
+  tournament: '#4CAF50',
   league: '#2196F3',
-  fundraiser: '#4CAF50',
-  social: '#9C27B0',
+  roundRobin: '#8B1FFF',
+  kingsCourt: '#FF1FE5',
   other: '#607D8B',
 };
 
 export const EVENT_TYPE_LABELS: Record<string, string> = {
+  signups: 'Signups',
   tournament: 'Tournament',
   league: 'League',
-  fundraiser: 'Fundraiser',
-  social: 'Social Event',
+  roundRobin: 'Round Robin',
+  kingsCourt: 'Kings Court',
   other: 'Other',
 };
 

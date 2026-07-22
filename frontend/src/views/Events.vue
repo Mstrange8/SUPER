@@ -56,10 +56,11 @@
             <label for="event_type">Event Type *</label>
             <select id="event_type" v-model="formData.event_type" @change="onEventTypeChange" required>
               <option value="">Select type...</option>
+              <option value="signups">Signups</option>
               <option value="tournament">Tournament</option>
               <option value="league">League</option>
-              <option value="fundraiser">Fundraiser</option>
-              <option value="social">Social Event</option>
+              <option value="roundRobin">Round Robin</option>
+              <option value="kingsCourt">Kings Court</option>
               <option value="other">Other</option>
             </select>
           </div>
@@ -83,6 +84,27 @@
                 type="date"
               />
             </div>
+          </div>
+
+          <div class="form-group">
+            <label>Repeats On</label>
+            <select v-model="formData.recurrence_rule" multiple>
+              <option value="su">Sunday</option>
+              <option value="mo">Monday</option>
+              <option value="tu">Tuesday</option>
+              <option value="we">Wednesday</option>
+              <option value="th">Thursday</option>
+              <option value="fr">Friday</option>
+              <option value="sa">Saturday</option>
+            </select>
+          </div>
+
+          <div v-if="formData.recurrence_rule">
+            <label>Repeat Until</label>
+            <input
+              type="date"
+              v-model="formData.recurrence_end"
+            />
           </div>
 
           <div class="form-group">
@@ -145,6 +167,16 @@
             <span>{{ formatDate(selectedEvent.end_date) }}</span>
           </div>
 
+          <div v-else-if="selectedEvent.recurrence_end" class="detail-row">
+            <strong>End:</strong>
+            <span>{{ formatDate(selectedEvent.recurrence_end) }}</span>
+          </div>
+
+          <div v-if="selectedEvent.recurrence_rule" class="detail-row">
+            <strong>Recurring Days:</strong>
+            <span>{{ formatDays(selectedEvent.recurrence_rule) }}</span>
+          </div>
+
           <div v-if="selectedEvent.description" class="detail-row">
             <strong>Description:</strong>
             <p>{{ selectedEvent.description }}</p>
@@ -178,6 +210,7 @@ import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import rrulePlugin from '@fullcalendar/rrule';
 import { useEventStore } from '../stores/event.store';
 import { useAuthStore } from '../stores/auth.store';
 import { EVENT_TYPE_COLORS, EVENT_TYPE_LABELS, type Event } from '../services/event.service';
@@ -202,6 +235,8 @@ const formData = ref({
   event_type: '',
   start_date: '',
   end_date: '',
+  recurrence_rule: [] as string[],
+  recurrence_end: '',
   external_link: '',
   color: '',
 });
@@ -222,23 +257,46 @@ const filteredEvents = computed(() => {
 });
 
 const calendarOptions = computed(() => ({
-  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, rrulePlugin],
   initialView: 'dayGridMonth',
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
     right: 'dayGridMonth,timeGridWeek,timeGridDay',
   },
-  events: filteredEvents.value.map(event => ({
-    id: event.id.toString(),
-    title: event.title,
-    start: event.start_date,
-    end: event.end_date || event.start_date,
-    backgroundColor: event.color,
-    borderColor: event.color,
-    extendedProps: event,
-    allDay: true,
-  })),
+  events: filteredEvents.value.map(event => {
+    console.log('testing');
+    console.log(event.recurrence_rule);
+    if (event.recurrence_rule && event.recurrence_rule.length > 0) {
+      
+      
+      return {
+        id: event.id.toString(),
+        title: event.title,
+        rrule: {
+          freq: 'weekly',
+          byweekday: event.recurrence_rule,
+          dtstart: event.start_date,
+          until: event.recurrence_end ? addOneDay(event.recurrence_end) : undefined,
+        },
+        allDay: true,
+        backgroundColor: event.color,
+        borderColor: event.color,
+        extendedProps: event,
+      };
+    }
+
+    return {
+      id: event.id.toString(),
+      title: event.title,
+      start: event.start_date,
+      end: event.end_date ? addOneDay(event.end_date) : undefined,
+      allDay: true,
+      backgroundColor: event.color,
+      borderColor: event.color,
+      extendedProps: event,
+    };
+  }),
   eventClick: (info: any) => {
     selectedEvent.value = info.event.extendedProps as Event;
     showDetailsModal.value = true;
@@ -275,6 +333,8 @@ const resetForm = () => {
     event_type: '',
     start_date: '',
     end_date: '',
+    recurrence_rule: [] as string[],
+    recurrence_end: '',
     external_link: '',
     color: '',
   };
@@ -283,25 +343,22 @@ const resetForm = () => {
 
 const editEvent = (event: Event) => {
   selectedEvent.value = event;
-  
-  // Convert UTC dates to local datetime-local format
-  const formatLocalDateTime = (utcDate: string) => {
-    const date = new Date(utcDate);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+
+  console.log(event);
   
   formData.value = {
     title: event.title,
     description: event.description || '',
     event_type: event.event_type,
-    start_date: formatLocalDateTime(event.start_date),
-    end_date: event.end_date ? formatLocalDateTime(event.end_date) : '',
+    start_date: event.start_date,
+    end_date: event.end_date || '',
+    recurrence_rule: event.recurrence_rule || [],
+    recurrence_end: event.recurrence_end || '',
     external_link: event.external_link || '',
     color: event.color,
   };
+
+  console.log(formData);
   showDetailsModal.value = false;
   showEditModal.value = true;
 };
@@ -310,11 +367,14 @@ const handleSubmit = async () => {
   loading.value = true;
   error.value = '';
 
+  console.log(formData);
+
   // Convert datetime-local to ISO string (keeps local timezone, browser will send as UTC)
   const submitData = {
     ...formData.value,
-    start_date: formData.value.start_date ? new Date(formData.value.start_date).toISOString() : '',
-    end_date: formData.value.end_date ? new Date(formData.value.end_date).toISOString() : undefined,
+    start_date: formData.value.start_date,
+    end_date: formData.value.end_date || undefined,
+    recurrence_end: formData.value.recurrence_end || undefined,
     color: eventTypeColors[formData.value.event_type] || '#607D8B'
   };
 
@@ -322,6 +382,7 @@ const handleSubmit = async () => {
     if (showEditModal.value && selectedEvent.value) {
       await eventStore.updateEvent(selectedEvent.value.id, submitData as any);
     } else {
+
       await eventStore.createEvent(submitData as any);
     }
     closeModals();
@@ -343,14 +404,30 @@ const deleteEventConfirm = async (id: number) => {
   }
 };
 
-const formatDate = (dateStr: string) => {
-  const date = new Date(dateStr);
-  return date.toLocaleString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
+const addOneDay = (dateString: string) => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() + 1);
+
+  return date.toISOString().split('T')[0];
 };
+
+const formatDate = (dateStr: string) => {
+  return dateStr.split("T")[0];
+};
+
+const formatDays = (days: string[]) => {
+  const dayMap: Record<string, string> = {
+    su: 'Sunday',
+    mo: 'Monday',
+    tu: 'Tuesday',
+    we: 'Wednesday',
+    th: 'Thursday',
+    fr: 'Friday',
+    sa: 'Saturday',
+  };
+  return ` ${days.map(day => dayMap[day]).join(', ')}`;
+}
 
 onMounted(async () => {
   await eventStore.fetchEvents();

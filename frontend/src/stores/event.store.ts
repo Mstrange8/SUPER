@@ -58,6 +58,7 @@ export const useEventStore = defineStore('events', {
       this.loading = true;
       this.error = null;
       try {
+        console.log(data);
         const event = await eventService.create(data);
         this.events.push(event);
         return event;
