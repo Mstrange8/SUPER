@@ -222,7 +222,7 @@ const showCreateModal = ref(false);
 const showEditModal = ref(false);
 const showDetailsModal = ref(false);
 const selectedEvent = ref<Event | null>(null);
-const selectedTypes = ref<string[]>([]);
+const selectedTypes = ref(['signups', 'tournament', 'league', 'roundRobin', 'kingsCourt', 'other']);
 const loading = ref(false);
 const error = ref('');
 
